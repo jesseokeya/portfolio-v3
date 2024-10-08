@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { getBlogPosts, getPost } from "@/data/blog";
-import { DATA } from "@/data/resume";
-import { formatDate } from "@/lib/utils";
+import { getBlogPosts, getPost } from "../../../data/blog";
+import { DATA } from "../../../data/resume";
+import { formatDate } from "../../../lib/utils";
 
 export async function generateStaticParams() {
   const posts = await getBlogPosts();
@@ -26,7 +26,9 @@ export async function generateMetadata({
     summary: description,
     image,
   } = post.metadata;
-  const ogImage = image ? `${DATA.url}${image}` : `${DATA.url}/og?title=${title}`;
+  const ogImage = image
+    ? `${DATA.url}${image}`
+    : `${DATA.url}/og?title=${title}`;
 
   return {
     title,

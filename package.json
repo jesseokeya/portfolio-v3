@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "description": "Portfolio website & projects playground",
   "scripts": {
-    "client:build": "pnpm run --filter web build",
-    "client:dev": "pnpm run --filter web dev",
+    "web:build": "pnpm run --filter web build",
+    "web:dev": "pnpm run --filter web dev",
     "sst": "sst",
     "sst:dev": "sst dev",
     "sst:deploy:prod": "sst deploy --stage production",
