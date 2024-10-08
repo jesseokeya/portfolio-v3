@@ -2,6 +2,33 @@
 
 Welcome to my portfolio website, [jesseokeya.com](https://jesseokeya.com) — a space where I showcase my work, ideas, blog posts, and various side projects. Built with Next.js, this app lives under `apps/web` and is deployed using [SST](https://sst.dev), leveraging AWS for serverless infrastructure and Cloudflare for domain management.
 
+## Project Structure
+
+```bash
+portfolio/
+├── apps/
+│   └── web/
+│       ├── content/
+│       ├── public/
+│       ├── src/
+│       ├── components.json
+│       ├── next-env.d.ts
+│       ├── next.config.mjs
+│       ├── package.json
+│       ├── pnpm-lock.yaml
+│       ├── postcss.config.mjs
+│       ├── tailwind.config.ts
+│       ├── tsconfig.json
+├── stacks/
+│   ├── index.ts
+│   ├── web.ts
+├── package.json
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+├── sst.config.ts
+├── tsconfig.json
+```
+
 ## Features
 
 - **Portfolio**: A comprehensive showcase of my professional work, projects, and accomplishments.
