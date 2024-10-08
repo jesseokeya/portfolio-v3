@@ -1,6 +1,7 @@
 import { NextjsArgs } from "../.sst/platform/src/components/aws";
 
 const props: NextjsArgs = {
+  path: "apps/web",
   environment: {
     NODE_ENV: $app.stage === "production" ? "production" : "development",
     AWS_REGION: process.env.AWS_REGION || "us-east-1",
