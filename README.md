@@ -29,7 +29,7 @@ pnpm install
 ## Running Locally
 To start the development server:
 ```bash
-pnpm client:dev
+pnpm web:dev
 ```
 Visit http://localhost:3000 to view the app locally.
 
