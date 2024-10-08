@@ -3,7 +3,7 @@ name: Deploy SST Application to AWS
 on:
   push:
     branches:
-      - production
+      - main
 
 permissions:
   id-token: write # Grants permission to request an OIDC token
