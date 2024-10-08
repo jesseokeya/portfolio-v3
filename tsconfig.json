@@ -21,11 +21,6 @@
                 "name": "next"
             }
         ],
-        "paths": {
-            "@/*": [
-                "./apps/web/src/*"
-            ]
-        }
     },
     "include": [
         "next-env.d.ts",
