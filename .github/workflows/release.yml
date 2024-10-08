@@ -52,7 +52,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Add SST and install dependencies
-        run: pnpm add sst --save-exact --workspace-root && pnpm install --no-frozen-lockfile
+        run: pnpm add sst --save-exact --workspace-root && pnpm install --frozen-lockfile
 
       - name: Deploy application to aws
         env:
