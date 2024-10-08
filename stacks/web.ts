@@ -3,7 +3,7 @@ import { NextjsArgs } from "../.sst/platform/src/components/aws";
 const props: NextjsArgs = {
   path: "apps/web",
   environment: {
-    AWS_REGION: process.env.AWS_REGION || "us-east-1",
+    NODE_ENV: $app.stage === "production" ? "production" : "development",
     CLOUDFLARE_API_TOKEN: process.env.CLOUDFLARE_API_TOKEN || "",
     CLOUDFLARE_DEFAULT_ACCOUNT_ID:
       process.env.CLOUDFLARE_DEFAULT_ACCOUNT_ID || "",
