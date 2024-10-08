@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.json", // Reference the root tsconfig
+  "compilerOptions": {
+    "outDir": "./dist", // Override specific options if needed
+    "rootDir": "./src", // Specify the root directory for the sub-project
+    "baseUrl": "./src", // Optional, for module resolution within this folder
+    "types": [
+      "node",
+      "jest"
+    ] // Add types specific to the project
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    ".next/types/**/*.ts"
+  ], // Include specific to the project
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

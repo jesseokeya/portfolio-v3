@@ -1,0 +1,47 @@
+{
+  "name": "main",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Portfolio website & projects playground",
+  "scripts": {
+    "client:build": "pnpm run --filter web build",
+    "client:dev": "pnpm run --filter web dev",
+    "sst": "sst",
+    "sst:dev": "sst dev",
+    "sst:deploy:prod": "sst deploy --stage production",
+    "sst:unlock:prod": "sst unlock --stage production",
+    "lint": "pnpm run --filter web lint",
+    "lint:fix": "pnpm lint --fix",
+    "prepare": "husky"
+  },
+  "keywords": [
+    "node",
+    "typescript",
+    "aws",
+    "sst",
+    "react",
+    "serverless",
+    "next.js"
+  ],
+  "author": "jesse@gmail.com",
+  "license": "MIT",
+  "dependencies": {
+    "sst": "3.1.69"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "8.10.145",
+    "@typescript-eslint/eslint-plugin": "^8.8.1",
+    "@typescript-eslint/parser": "^8.8.1",
+    "eslint": "^8",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jsx-a11y": "^6.10.0",
+    "eslint-plugin-next": "^0.0.0",
+    "eslint-plugin-react": "^7.37.1",
+    "husky": "^9.1.6"
+  },
+  "engines": {
+    "node": ">=21.7.3"
+  },
+  "packageManager": "pnpm@8.7.0"
+}
