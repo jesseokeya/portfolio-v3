@@ -12,7 +12,10 @@
     "sst:unlock:prod": "sst unlock --stage production",
     "lint": "pnpm run --filter web lint",
     "lint:fix": "pnpm lint --fix",
-    "prepare": "husky"
+    "prepare": "husky",
+    "aws:get-identity": "aws sts get-caller-identity --profile=jesseokeya-personal --no-cli-pager",
+    "aws:auth": "pnpm run aws:login:sso && pnpm run aws:get-identity",
+    "aws:login:sso": "aws sso login --sso-session=personal"
   },
   "keywords": [
     "node",
