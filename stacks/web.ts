@@ -7,6 +7,7 @@ const props: NextjsArgs = {
     CLOUDFLARE_API_TOKEN: process.env.CLOUDFLARE_API_TOKEN || "",
     CLOUDFLARE_DEFAULT_ACCOUNT_ID:
       process.env.CLOUDFLARE_DEFAULT_ACCOUNT_ID || "",
+    buildCommand: "pnpm --filter web run build",
   },
 };
 

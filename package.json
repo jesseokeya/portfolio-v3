@@ -48,7 +48,7 @@
     "husky": "^9.1.6"
   },
   "engines": {
-    "node": ">=21.7.3"
+    "node": ">=18.20.4"
   },
   "packageManager": "pnpm@8.7.0"
 }

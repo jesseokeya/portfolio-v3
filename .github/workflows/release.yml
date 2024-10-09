@@ -30,7 +30,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 21.x
+          node-version: 18.x
 
       - uses: pnpm/action-setup@v4
         name: Install pnpm
@@ -52,10 +52,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Add SST and install dependencies
-        run: pnpm add sst next --save-exact --workspace-root && pnpm install --frozen-lockfile
-
-      - name: Build web application
-        run: pnpm web:build
+        run: pnpm add sst --save-exact --workspace-root && pnpm install --frozen-lockfile
 
       - name: Deploy application to aws
         env:
