@@ -15,8 +15,7 @@
     "prepare": "husky",
     "aws:get-identity": "aws sts get-caller-identity --profile=jesseokeya-personal --no-cli-pager",
     "aws:auth": "pnpm run aws:login:sso && pnpm run aws:get-identity",
-    "aws:login:sso": "aws sso login --sso-session=personal",
-    "postinstall": "pnpm install next -w"
+    "aws:login:sso": "aws sso login --sso-session=personal"
   },
   "keywords": [
     "node",
