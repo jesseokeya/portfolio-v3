@@ -93,7 +93,7 @@ export const DATA = {
         "Collaborated on designing and implementing event-driven systems with AWS serverless technologies. Worked with engineering, product, and design teams to deliver platform enhancements and simplified customer integrations with third-party platforms. Encouraged innovation and continuous improvement. Developed robust APIs for leading commerce solutions and maintained automated tests to ensure product quality. Designed microservice-based systems and built event-driven architectures using AWS Lambda, DynamoDB, SQS, SNS, API Gateway, and other cloud services.",
     },
     {
-      company: "Properly (aquired by Pine)",
+      company: "Properly (acquired by Pine)",
       href: "https://www.pine.ca/",
       badges: [],
       location: "Toronto, ON",
