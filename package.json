@@ -26,7 +26,11 @@
     "serverless",
     "next.js"
   ],
-  "author": "jesse@gmail.com",
+  "author": {
+    "name": "jesse",
+    "email": "jesseokeya@gmail.com",
+    "url": "https://github.com/jesseokeya/portfolio-v3"
+  },
   "license": "MIT",
   "dependencies": {
     "sst": "3.1.69"
