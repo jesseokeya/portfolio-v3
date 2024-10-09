@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
@@ -34,7 +35,7 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
     const mousex = useMotionValue(Infinity);
 
     const renderChildren = () => {
-      return React.Children.map(children, (child: any) => {
+      return React.Children.map(children, (child: unknown) => {
         if (React.isValidElement(child)) {
           return React.cloneElement(child, {
             mousex,
@@ -54,6 +55,7 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
         {...props}
         className={cn(dockVariants({ className }))}
       >
+        {/* @ts-expect-error Known */}
         {renderChildren()}
       </motion.div>
     );
@@ -73,7 +75,6 @@ export interface DockIconProps {
 }
 
 const DockIcon = ({
-  size,
   magnification = DEFAULT_MAGNIFICATION,
   distance = DEFAULT_DISTANCE,
   mousex,

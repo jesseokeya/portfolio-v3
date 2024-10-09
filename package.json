@@ -10,7 +10,7 @@
     "sst:dev": "sst dev",
     "sst:deploy:prod": "sst deploy --stage production",
     "sst:unlock:prod": "sst unlock --stage production",
-    "lint": "pnpm run --filter client lint",
+    "lint": "pnpm run --filter web lint",
     "lint:fix": "pnpm lint --fix",
     "prepare": "husky",
     "aws:get-identity": "aws sts get-caller-identity --profile=jesseokeya-personal --no-cli-pager",

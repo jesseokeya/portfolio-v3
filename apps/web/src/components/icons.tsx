@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { GlobeIcon, MailIcon } from "lucide-react";
 
 export type IconProps = React.HTMLAttributes<SVGElement>;
