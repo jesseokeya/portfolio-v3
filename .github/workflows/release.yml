@@ -54,6 +54,9 @@ jobs:
       - name: Add SST and install dependencies
         run: pnpm add sst next --save-exact --workspace-root && pnpm install --frozen-lockfile
 
+      - name: Build web application
+        run: pnpm web:build
+
       - name: Deploy application to aws
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
