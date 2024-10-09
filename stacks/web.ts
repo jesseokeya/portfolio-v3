@@ -8,6 +8,7 @@ const props: NextjsArgs = {
     CLOUDFLARE_DEFAULT_ACCOUNT_ID:
       process.env.CLOUDFLARE_DEFAULT_ACCOUNT_ID || "",
     buildCommand: "pnpm --filter web run build",
+    runtime: "nodejs18.x",
   },
 };
 
