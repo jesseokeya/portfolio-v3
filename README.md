@@ -60,5 +60,5 @@ graph LR;
 Feel free to reach out if you have any questions or ideas you'd like to discuss!
 
 - **Website**: [jesseokeya.com](https://jesseokeya.com/)
-- **Email**: jesseokeya@gmail.com
+- **Email**: jesseokeya@gmail.com.
 
