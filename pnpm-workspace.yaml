@@ -1,2 +1,3 @@
+# https://pnpm.io/workspaces
 packages:
   - "apps/*"
