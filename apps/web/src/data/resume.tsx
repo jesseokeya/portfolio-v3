@@ -9,9 +9,9 @@ export const DATA = {
   location: "Ottawa Ontario, CA",
   locationLink: "https://www.google.com/maps/place/ottawa",
   description:
-    "Entrepreneurial Software Engineer. I love building products from 0 to 1 and helping people along the way.",
+    "Entrepreneurial Software Engineer. I love bringing ideas to life from concept to reality and helping people along the way.",
   summary:
-    "I've been building since 2018, interning at various small startups, helping them go from 0 to 1. I’ve had the opportunity to intern at companies like Qlik and Iredto, both based in Ottawa, where I reside. In addition to attending various hackathons, I also had the privilege of hosting Algonquin College's first-ever hackathon. As a passionate Software Engineer, I’ve developed a comprehensive skill set in platform development, cloud services, enterprise architecture, and web-based applications. I love building products from scratch and currently building [chyro.io](https://chyro.io), providing chiropractic practices with an all-in-one management solution, from patient care to billing.",
+    "I’ve had the opportunity to work at small, medium, and large companies, using a wide range of tools and gaining diverse experiences along the way. I've worked with companies like Qlik and Iredto, both based in Ottawa, where I reside. In addition to attending various hackathons, I also had the privilege of hosting Algonquin College's first-ever hackathon. As a passionate Software Engineer, I’ve developed a comprehensive skill set in platform development, cloud services, enterprise architecture, and web-based applications. I love building products from scratch and am currently building chyro.io, providing chiropractic practices with an all-in-one management solution, from patient care to billing.",
   avatarUrl: "/me.png",
   skills: [
     "Mobile-First, Responsive Design",
