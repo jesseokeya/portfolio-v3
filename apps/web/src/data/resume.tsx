@@ -205,7 +205,7 @@ export const DATA = {
       links: [
         {
           type: "Website",
-          href: "https://magicui.design",
+          href: "https://chyro.io",
           icon: <Icons.globe className="size-3" />,
         },
         {
