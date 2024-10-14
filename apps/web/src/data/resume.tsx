@@ -198,8 +198,8 @@ export const DATA = {
         "Serverless",
         "Typescript",
         "DynamoDB",
-        "TailwindCSS",
         "Stripe",
+        "TailwindCSS",
         "Shadcn UI",
       ],
       links: [
