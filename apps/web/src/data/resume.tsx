@@ -168,24 +168,24 @@ export const DATA = {
     },
   ],
   projects: [
-    {
-      title: "Cloutdesk",
-      href: "https://www.cloutdesk.com/",
-      dates: "August 2020 - December 2021",
-      active: true,
-      description:
-        "As a founding engineer at Cloutdesk, I played a pivotal role in helping build the platform from the ground up, handling the backend, frontend, and infrastructure. My work helped streamline workflows, boost sponsorship revenue, and manage deals, contracts, and finances, supporting over 2,000 creators in earning $1,000,000+.",
-      technologies: ["Next.js", "Go", "PostgreSQL", "Material UI", "Stripe"],
-      links: [
-        {
-          type: "Website",
-          href: "https://www.cloutdesk.com/",
-          icon: <Icons.globe className="size-3" />,
-        },
-      ],
-      image: "",
-      video: "/cloutdesk.mp4",
-    },
+    // {
+    //   title: "Cloutdesk",
+    //   href: "https://www.cloutdesk.com/",
+    //   dates: "August 2020 - December 2021",
+    //   active: true,
+    //   description:
+    //     "As a founding engineer at Cloutdesk, I played a pivotal role in helping build the platform from the ground up, handling the backend, frontend, and infrastructure. My work helped streamline workflows, boost sponsorship revenue, and manage deals, contracts, and finances, supporting over 2,000 creators in earning $1,000,000+.",
+    //   technologies: ["Next.js", "Go", "PostgreSQL", "Material UI", "Stripe"],
+    //   links: [
+    //     {
+    //       type: "Website",
+    //       href: "https://www.cloutdesk.com/",
+    //       icon: <Icons.globe className="size-3" />,
+    //     },
+    //   ],
+    //   image: "",
+    //   video: "/cloutdesk.mp4",
+    // },
     {
       title: "Chyro",
       href: "https://chyro.io",
@@ -198,14 +198,14 @@ export const DATA = {
         "Serverless",
         "Typescript",
         "DynamoDB",
-        "TailwindCSS",
         "Stripe",
+        "TailwindCSS",
         "Shadcn UI",
       ],
       links: [
         {
           type: "Website",
-          href: "https://magicui.design",
+          href: "https://chyro.io",
           icon: <Icons.globe className="size-3" />,
         },
         {
