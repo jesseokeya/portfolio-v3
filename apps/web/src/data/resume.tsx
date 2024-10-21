@@ -87,7 +87,7 @@ export const DATA = {
       location: "San Francisco California, USA",
       title: "Backend Software Engineer",
       logoUrl: "/extend.png",
-      start: "January 2022",
+      start: "January 2023",
       end: "Present",
       description:
         "Collaborated on designing and implementing event-driven systems with AWS serverless technologies. Worked with engineering, product, and design teams to deliver platform enhancements and simplified customer integrations with third-party platforms. Encouraged innovation and continuous improvement. Developed robust APIs for leading commerce solutions and maintained automated tests to ensure product quality. Designed microservice-based systems and built event-driven architectures using AWS Lambda, DynamoDB, SQS, SNS, API Gateway, and other cloud services.",
