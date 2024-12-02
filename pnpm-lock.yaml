@@ -73,8 +73,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       framer-motion:
-        specifier: ^11.11.9
-        version: 11.11.9(react-dom@18.3.1)(react@18.3.1)
+        specifier: ^11.12.0
+        version: 11.12.0(react-dom@18.3.1)(react@18.3.1)
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
@@ -2307,8 +2307,8 @@ packages:
       cross-spawn: 7.0.3
       signal-exit: 4.1.0
 
-  /framer-motion@11.11.9(react-dom@18.3.1)(react@18.3.1):
-    resolution: {integrity: sha512-XpdZseuCrZehdHGuW22zZt3SF5g6AHJHJi7JwQIigOznW4Jg1n0oGPMJQheMaKLC+0rp5gxUKMRYI6ytd3q4RQ==}
+  /framer-motion@11.12.0(react-dom@18.3.1)(react@18.3.1):
+    resolution: {integrity: sha512-gZaZeqFM6pX9kMVti60hYAa75jGpSsGYWAHbBfIkuHN7DkVHVkxSxeNYnrGmHuM0zPkWTzQx10ZT+fDjn7N4SA==}
     peerDependencies:
       '@emotion/is-prop-valid': '*'
       react: ^18.0.0
