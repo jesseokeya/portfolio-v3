@@ -168,24 +168,29 @@ export const DATA = {
     },
   ],
   projects: [
-    // {
-    //   title: "Cloutdesk",
-    //   href: "https://www.cloutdesk.com/",
-    //   dates: "August 2020 - December 2021",
-    //   active: true,
-    //   description:
-    //     "As a founding engineer at Cloutdesk, I played a pivotal role in helping build the platform from the ground up, handling the backend, frontend, and infrastructure. My work helped streamline workflows, boost sponsorship revenue, and manage deals, contracts, and finances, supporting over 2,000 creators in earning $1,000,000+.",
-    //   technologies: ["Next.js", "Go", "PostgreSQL", "Material UI", "Stripe"],
-    //   links: [
-    //     {
-    //       type: "Website",
-    //       href: "https://www.cloutdesk.com/",
-    //       icon: <Icons.globe className="size-3" />,
-    //     },
-    //   ],
-    //   image: "",
-    //   video: "/cloutdesk.mp4",
-    // },
+    {
+      title: "AskBenny",
+      href: "https://askbenny.ca/",
+      dates: "January 2025 - Present",
+      active: true,
+      description:
+        "AI answering service for your Canadian business calls. 10x better than voicemail. 10x cheaper than an answering service. Grow your business while benny answers your calls, helps set appointments, and sends you the messages.",
+      technologies: ["Next.js", "Go", "PostgreSQL", "TailwindCSS", "Stripe"],
+      links: [
+        {
+          type: "Website",
+          href: "https://askbenny.ca/",
+          icon: <Icons.globe className="size-3" />,
+        },
+        {
+          type: "Source",
+          href: "https://github.com/askbenny",
+          icon: <Icons.github className="size-3" />,
+        },
+      ],
+      image: "",
+      video: "/askbenny.mp4",
+    },
     {
       title: "Chyro",
       href: "https://chyro.io",
