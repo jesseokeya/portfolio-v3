@@ -6,7 +6,9 @@ const props: EmailArgs = {
 
 if ($app.stage === "production") {
   props.dns = sst.cloudflare.dns();
-  props.sender = "jesseokeya.com";
+
+  // TODO: Change to noreply@jesseokeya.com once domain is verified in SES
+  props.sender = "jesseokeya@gmail.com";
 }
 
 const email = new sst.aws.Email("Email", props);
