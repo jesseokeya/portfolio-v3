@@ -10,10 +10,10 @@ export default $config({
     };
   },
   async run() {
-    const { web } = await import("./stacks");
+    const { web, email } = await import("./stacks");
     return {
       webUrl: web.url,
-      // sender: email.sender,
+      sender: email.sender,
       environment: $app.stage,
     };
   },
