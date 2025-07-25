@@ -4,10 +4,10 @@ const props: EmailArgs = {
   sender: "jesseokeya@gmail.com",
 };
 
-// if ($app.stage === "production") {
-//   props.dns = sst.cloudflare.dns();
-//   props.sender = "jesseokeya.com";
-// }
+if ($app.stage === "production") {
+  props.dns = sst.cloudflare.dns();
+  props.sender = "jesseokeya.com";
+}
 
 const email = new sst.aws.Email("Email", props);
 
