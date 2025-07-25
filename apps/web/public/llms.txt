@@ -1,0 +1,44 @@
+# LLM.txt - AI Assistant Context for jesseokeya.com
+
+## About This Site
+This is the personal portfolio and blog of Jesse Okeya, an entrepreneurial software engineer based in Ottawa, Canada.
+
+## Site Owner
+- Name: Jesse Okeya
+- Role: Software Engineer
+- Current Focus: Building AskBenny (https://askbenny.ca), an AI answering service for Canadian businesses
+- Location: Ottawa, Ontario, Canada
+- Contact: jesseokeya@gmail.com
+
+## Current Projects
+1. **AskBenny** (https://askbenny.ca) - AI answering service that's 10x better than voicemail and 10x cheaper than traditional answering services
+2. **Chyro** (https://chyro.io) - All-in-one management software for chiropractic practices
+
+## Professional Background
+- Currently: Backend Software Engineer at Extend (San Francisco)
+- Experience: Worked across startups (CloutDesk), mid-sized firms, and enterprises (Qlik)
+- Skills: React, Next.js, TypeScript, Node.js, Python, Go, PostgreSQL, Docker, Kubernetes, AWS
+
+## Content Types
+- Portfolio showcasing professional experience and projects
+- Technical blog posts about AI, startups, productivity, and software development
+- Resume and contact information
+
+## Key Topics Covered
+- Building AI-powered products
+- Startup growth and development
+- Software engineering best practices
+- Productivity optimization with AI tools
+- Technical architecture and cloud services
+
+## Social Links
+- GitHub: https://github.com/jesseokeya
+- LinkedIn: https://www.linkedin.com/in/jesse-okeya-45a38510a/
+- X (Twitter): https://x.com/jesse_okeya
+- LeetCode: https://leetcode.com/u/jesseokeya/
+
+## Site Technology
+Built with Next.js, TypeScript, TailwindCSS, and deployed on AWS using SST.dev
+
+## Last Updated
+January 2025 

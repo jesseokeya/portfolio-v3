@@ -1,0 +1,21 @@
+# https://jesseokeya.com/robots.txt
+
+# Allow all web crawlers
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://jesseokeya.com/sitemap.xml
+
+# Crawl delay (optional - remove if not needed)
+Crawl-delay: 1
+
+# Disallow crawling of assets with query parameters
+Disallow: /*?
+
+# Allow specific bots faster crawling
+User-agent: Googlebot
+Crawl-delay: 0
+
+User-agent: Bingbot
+Crawl-delay: 0 

@@ -11,7 +11,7 @@ export const DATA = {
   description:
     "Entrepreneurial Software Engineer. I love bringing ideas to life from concept to reality and helping people along the way.",
   summary:
-    "I’ve had the opportunity to work across small, medium, and large companies, gaining a wide range of experiences and working with diverse tools. From startups like Cloutdesk to mid-sized firms like Irdeto, and large enterprises like Qlik—all based in Ottawa, where I reside—each role has provided valuable insights and growth. Along the way, I’ve attended and participated in various hackathons and even had the privilege of hosting Algonquin College's first-ever hackathon. As a passionate Software Engineer, I’ve built a comprehensive skill set that spans platform development, cloud services, enterprise architecture, and web-based applications. Currently, I’m building [chyro.io](https://chyro.io), an all-in-one management solution for chiropractic practices, streamlining everything from patient care to billing.",
+    "Software Engineer with experience across startups and enterprises, from Cloutdesk to Qlik. I've built a comprehensive skill set spanning platform development, cloud services, and web applications. Currently building [AskBenny](https://askbenny.ca), an AI answering service that helps Canadian businesses handle calls intelligently 10x better than voicemail and 10x cheaper than traditional answering services.",
   avatarUrl: "/me.png",
   skills: [
     "Mobile-First, Responsive Design",
