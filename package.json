@@ -9,7 +9,7 @@
     "sst": "sst",
     "sst:dev": "sst dev",
     "sst:deploy:prod": "sst deploy --stage production",
-    "sst:unlock:prod": "sst unlock --stage production",
+    "sst:unlock:prod": "sst refresh --stage production && sst unlock --stage production",
     "lint": "pnpm run --filter web lint",
     "lint:fix": "pnpm lint --fix",
     "prepare": "husky",
