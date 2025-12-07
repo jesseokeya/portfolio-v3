@@ -6,7 +6,7 @@ export default $config({
       removal: input?.stage === "production" ? "retain" : "remove",
       region: "us-east-1",
       home: "aws",
-      providers: { cloudflare: "5.40.1" },
+      providers: { cloudflare: "6.10.0" },
     };
   },
   async run() {
