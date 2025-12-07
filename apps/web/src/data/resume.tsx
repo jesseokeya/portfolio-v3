@@ -81,6 +81,17 @@ export const DATA = {
 
   work: [
     {
+      company: "AskBenny",
+      href: "https://askbenny.ca/",
+      badges: [],
+      location: "Toronto Ontario, CA",
+      title: "Co-Founder & CTO",
+      logoUrl: "/askbenny.png",
+      start: "April 2025",
+      end: "Present",
+      description: `Built AskBenny, an AI answering service that helps Canadian businesses handle calls intelligently 10x better than voicemail and 10x cheaper than traditional answering services. Use coupon code "JESSE25" to get 25% off your first month.`,
+    },
+    {
       company: "Extend",
       href: "https://www.extend.com/",
       badges: [],
@@ -88,7 +99,7 @@ export const DATA = {
       title: "Backend Software Engineer",
       logoUrl: "/extend.png",
       start: "January 2023",
-      end: "Present",
+      end: "June 2025",
       description:
         "Collaborated on designing and implementing event-driven systems with AWS serverless technologies. Worked with engineering, product, and design teams to deliver platform enhancements and simplified customer integrations with third-party platforms. Encouraged innovation and continuous improvement. Developed robust APIs for leading commerce solutions and maintained automated tests to ensure product quality. Designed microservice-based systems and built event-driven architectures using AWS Lambda, DynamoDB, SQS, SNS, API Gateway, and other cloud services.",
     },

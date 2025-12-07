@@ -26,19 +26,19 @@ With 10 people? You'd spend more time communicating than building.
 
 Our team structure is beautifully simple:
 
-**Jordan** - The Customer Voice
+**Jordan**: The Customer Voice
 
 - Onboards every new customer personally
 - Translates user feedback into product insights
 - Ensures customers become evangelists
 
-**Sydney** - The Growth Engine
+**Sydney**: The Growth Engine
 
 - Masters the art of finding qualified leads
 - Keeps our customer acquisition costs incredibly low
 - Turns marketing dollars into real revenue
 
-**Me** - The Builder
+**Me**: The Builder
 
 - Transforms ideas into working software
 - Leverages AI to code at 10x speed
@@ -50,9 +50,7 @@ No overlaps. No confusion. No politics.
 
 ![Speed and focus](https://images.unsplash.com/photo-1461988320302-91bde64fc8e4?w=1200&h=600&fit=crop)
 
-```
-Momentum = (Speed × Focus) / Coordination Cost
-```
+> Momentum = (Speed × Focus) / Coordination Cost
 
 Every additional person increases coordination cost exponentially. By staying lean:
 
@@ -66,19 +64,21 @@ Every additional person increases coordination cost exponentially. By staying le
 
 **Timeline Comparison:**
 
+```mermaid
+graph LR
+    subgraph Large Company [Large Company (4 weeks)]
+    A[Internal Discussions<br/>3 Days] --> B[Technical Planning<br/>4 Days]
+    B --> C[Development<br/>2 Weeks]
+    C --> D[Testing & Deployment<br/>1 Week]
+    end
 ```
-Large Company (4 weeks total):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Day 1-3:    Internal Discussions    ████
-Day 4-7:    Technical Planning      ████
-Week 2-3:   Development             ██████████
-Week 4:     Testing & Deployment    █████
 
-AskBenny (48 hours total):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Hour 1:     Request Captured        █
-Hour 2-4:   Prototype Built         ███
-Day 2:      Beta Testing           ████████
+```mermaid
+graph LR
+    subgraph AskBenny [AskBenny (48 hours)]
+    E[Request Captured<br/>1 Hour] --> F[Prototype Built<br/>3 Hours]
+    F --> G[Beta Testing<br/>1 Day]
+    end
 ```
 
 Last week, a customer requested a specific integration. In a larger company:

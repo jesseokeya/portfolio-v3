@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { getBlogPosts, getPost } from "../../../data/blog";
 import { DATA } from "../../../data/resume";
 import { formatDate } from "../../../lib/utils";
+import { MermaidScript } from "../../../components/mermaid-script";
 
 export async function generateStaticParams() {
   const posts = await getBlogPosts();
@@ -69,6 +70,7 @@ export default async function Blog({
 
   return (
     <section id="blog">
+      <MermaidScript />
       <script
         type="application/ld+json"
         suppressHydrationWarning

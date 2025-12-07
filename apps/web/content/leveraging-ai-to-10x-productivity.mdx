@@ -44,26 +44,12 @@ AI didn't just help us build faster – it helped us build better:
 
 The real magic happens when you combine multiple AI tools:
 
-```
-┌─────────────────┐
-│  Human Intent   │
-└────────┬────────┘
-         ↓
-┌─────────────────┐
-│ AI Enhancement  │
-└────────┬────────┘
-         ↓
-┌─────────────────┐     This cycle traditionally
-│     Rapid       │     took weeks. With AI,
-│ Implementation  │ ←── it happens in days or
-└────────┬────────┘     even hours.
-         ↓
-┌─────────────────┐
-│   Real User     │
-│    Feedback     │
-└────────┬────────┘
-         │
-         └────────→ (Back to Human Intent)
+```mermaid
+graph TD
+    A[Human Intent] --> B[AI Enhancement]
+    B --> C[Rapid Implementation]
+    C --> D[Real User Feedback]
+    D -->|Iterate| A
 ```
 
 This cycle, which traditionally took weeks, now happens in days or even hours.

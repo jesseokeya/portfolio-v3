@@ -130,32 +130,16 @@ Our system models real-world interactions through events:
 
 ### How Events Flow Through [AskBenny](https://askbenny.ca/)
 
-```
-┌─────────────────┐
-│  Incoming Call  │
-└────────┬────────┘
-         ↓
-┌─────────────────┐
-│  CallReceived   │
-│     Event       │
-└────────┬────────┘
-         ↓
-┌─────────────────┐
-│ Lambda Handler  │
-└────────┬────────┘
-         ↓
-┌─────────────────┐
-│Customer Record  │
-│    Update       │
-└────────┬────────┘
-         ↓
-┌─────────────────┐
-│ DynamoDB Stream │───┬───────────────┬────────────────┐
-└─────────────────┘   ↓               ↓                ↓
-                ┌──────────┐    ┌────────────┐  ┌──────────────┐
-                │  Update  │    │   Notify   │  │   Trigger    │
-                │Analytics │    │    Team    │  │  Follow-up   │
-                └──────────┘    └────────────┘  └──────────────┘
+```mermaid
+graph TD
+    Call[Incoming Call] --> Event[CallReceived Event]
+    Event --> Lambda[Lambda Handler]
+    Lambda --> Record[Customer Record Update]
+    Record --> Stream[DynamoDB Stream]
+    
+    Stream --> Analytics[Update Analytics]
+    Stream --> Notify[Notify Team]
+    Stream --> Trigger[Trigger Follow-up]
 ```
 
 This architecture means:
@@ -176,7 +160,7 @@ This architecture means:
 
 Observability is crucial when running serverless:
 
-### SST Console - Our Mission Control
+### SST Console: Our Mission Control
 
 The SST Console gives us:
 
@@ -185,7 +169,7 @@ The SST Console gives us:
 - **Visual event flow tracking**
 - **One-click access to any resource**
 
-### CloudWatch - Deep Insights
+### CloudWatch: Deep Insights
 
 We've set up:
 
@@ -260,8 +244,11 @@ The beauty of serverless: our infrastructure costs were almost nothing during de
 
 The real power comes from integration:
 
-```
-Customer Action → PostHog Event → Crisp Message → Team Notification
+```mermaid
+graph LR
+    A[Customer Action] --> B[PostHog Event]
+    B --> C[Crisp Message]
+    C --> D[Team Notification]
 ```
 
 Example flow:

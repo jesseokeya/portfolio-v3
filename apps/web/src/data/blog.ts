@@ -8,6 +8,7 @@ import rehypeStringify from "rehype-stringify";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
 import { unified } from "unified";
+import { rehypeMermaid } from "../lib/rehype-mermaid";
 
 type Metadata = {
   title: string;
@@ -24,6 +25,7 @@ export async function markdownToHTML(markdown: string) {
   const p = await unified()
     .use(remarkParse)
     .use(remarkRehype)
+    .use(rehypeMermaid)
     .use(rehypePrettyCode, {
       // https://rehype-pretty.pages.dev/#usage
       theme: {
