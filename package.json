@@ -34,7 +34,7 @@
   "license": "MIT",
   "dependencies": {
     "next": "15.4.8",
-    "sst": "3.17.25"
+    "sst": "3.17.23"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.145",
