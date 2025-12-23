@@ -6,15 +6,31 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatDate(date: string) {
-  const currentDate = new Date().getTime();
+  // Parse the input date
+  let targetDate: Date;
   if (!date.includes("T")) {
-    date = `${date}T00:00:00`;
+    // If no time is specified, treat as UTC midnight to avoid timezone issues
+    targetDate = new Date(`${date}T00:00:00Z`);
+  } else {
+    targetDate = new Date(date);
   }
-  const targetDate = new Date(date).getTime();
-  const timeDifference = Math.abs(currentDate - targetDate);
+
+  // Get current date at start of day for consistent comparison
+  const now = new Date();
+  const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  // Get target date at start of day
+  const targetDateStart = new Date(
+    targetDate.getFullYear(),
+    targetDate.getMonth(),
+    targetDate.getDate()
+  );
+
+  // Calculate difference in days
+  const timeDifference = currentDate.getTime() - targetDateStart.getTime();
   const daysAgo = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 
-  const fullDate = new Date(date).toLocaleString("en-us", {
+  const fullDate = targetDate.toLocaleString("en-us", {
     month: "long",
     day: "numeric",
     year: "numeric",

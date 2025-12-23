@@ -46,7 +46,7 @@ graph LR;
     B --> C[Cloudflare DNS];
     C --> D[CloudFront - AWS CDN];
     D --> E[S3 Bucket - Static Assets];
-    D --> F[Lambda@Edge - Server-Side Rendering];
+    D --> F[Lambda Edge - Server-Side Rendering];
     F --> G(Next.js App Deployed via SST);
 
     subgraph AWS Infrastructure
