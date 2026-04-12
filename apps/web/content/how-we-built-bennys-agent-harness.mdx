@@ -1,0 +1,310 @@
+---
+title: "How We Built Benny's Agent Harness with LangChain DeepAgents"
+author: "Jesse Okeya"
+publishedAt: "2026-04-12"
+summary: "A deep technical look at how AskBenny's AI agent works under the hood. Built on LangChain's DeepAgents TypeScript SDK, routed through OpenRouter, with modular MCP servers, skill-based context injection, and sandboxed code execution."
+readingTime: "12 min read"
+---
+
+Our AI agent has become the core of how customers interact with AskBenny. Behind the scenes, it's a system we've been iterating on for months. This post breaks down how the whole thing works technically, why we made the choices we did, and what we learned along the way.
+
+![Benny Agent on the web, handling requests through natural conversation](/agent-image.png)
+
+## Why LangChain DeepAgents
+
+The first decision was which SDK to build on. The obvious choices were Anthropic's agent SDK or OpenAI's. Both are good, but both come with the same problem: vendor lock-in.
+
+If I build directly on Claude's SDK, I'm tied to Claude. If I build on OpenAI, I'm tied to OpenAI. Models are improving fast and the landscape shifts every few months. I didn't want to be in a position where switching models meant rewriting our entire agent infrastructure.
+
+LangChain's [DeepAgents](https://docs.langchain.com/oss/python/deepagents/overview) TypeScript SDK gave us what we needed. It's model-agnostic, composable, and the middleware system is flexible enough that we can swap out components without tearing everything apart. We pair it with [OpenRouter](https://openrouter.ai/) so we can route to any model we want. Right now we're primarily running Claude Sonnet 4.6, but we can switch to Opus or any other model with a config change.
+
+```mermaid
+graph LR
+    Client[Client App] -->|WebSocket| Harness[DeepAgents Harness]
+    Harness -->|OpenRouter| Models[LLM Models]
+    Models --> Sonnet[Claude Sonnet 4.6]
+    Models --> Opus[Claude Opus 4.6]
+    Models --> Other[Any OpenRouter Model]
+
+    style Harness fill:#c0392b,color:#fff
+    style Models fill:#e74c3c,color:#fff
+```
+
+## The Cost Reality
+
+Opus 4.6 is the best performing model for our use case. No question. But it's expensive, and we're a startup. We're profitable, but I don't want all our margins going to API costs.
+
+What I found is that you can get very close to Opus-level performance out of Sonnet 4.6 if you're disciplined about two things: making the right context available, and being strict with your instruction set. Our skill files are detailed and opinionated. They tell the model exactly what steps to follow, what API endpoints to hit, and what format to return results in. That structure closes the gap between Sonnet and Opus significantly.
+
+There's a compounding effect here too. As models get better, our product gets better automatically. The constraints we put in place today to optimize for cost are also making us better at prompt engineering and context management. That knowledge carries forward regardless of which model we're running.
+
+## Architecture Overview
+
+Here's how a request flows through the system from start to finish:
+
+```mermaid
+graph TD
+    User[User Message] -->|WebSocket| Server[Fastify Server]
+    Server --> Router[Query Router]
+    Router -->|Haiku / Fast Model| Selector[Skill & MCP Selector]
+
+    Selector --> Skills[Skill Files]
+    Selector --> MCP[MCP Servers]
+
+    Skills --> Context[Agent Context]
+    MCP --> Context
+
+    Context --> Agent[DeepAgents Runtime]
+    Agent -->|Middleware Stack| LLM[LLM via OpenRouter]
+
+    LLM --> HITL{Sensitive Action?}
+    HITL -->|Yes| Approval[Human-in-the-Loop]
+    HITL -->|No| Execute[Execute Action]
+    Approval -->|Approved| Execute
+    Approval -->|Rejected| Cancel[Cancel & Respond]
+    Execute --> Response[Stream Response to Client]
+
+    style Router fill:#c0392b,color:#fff
+    style Agent fill:#e74c3c,color:#fff
+    style HITL fill:#f39c12,color:#fff
+```
+
+The client app connects to our DeepAgents harness over WebSocket. This gives us real-time bidirectional communication with event buffering and transparent reconnection. If a user loses connection mid-conversation, we replay buffered events when they reconnect so nothing is lost.
+
+We run a global concurrency limiter to prevent overload. Backpressure signals go back to the client when we're at capacity.
+
+## The Skill System
+
+Skills are the backbone of how the agent knows what to do. Each skill is a markdown file with frontmatter metadata and detailed instructions. Think of them like specialized playbooks.
+
+We have skills for call management, organization settings, scheduling, contact management, and more. Each one contains:
+
+- Step-by-step instructions for the task
+- The specific API endpoints to call
+- Expected input/output formats
+- Edge cases and error handling guidance
+
+When a query comes in, a fast model (Haiku) looks at the user's message and selects which skills are relevant. Only those skills get injected into the agent's context. This is critical because we found that the thinner the context window, the better the agent performs.
+
+```mermaid
+graph TD
+    Query[User Query] --> FastModel[Fast Model / Haiku]
+    FastModel --> S1[Call Management Skill]
+    FastModel --> S2[Organization Skill]
+    FastModel --> S3[Scheduling Skill]
+    FastModel --> S4[Contact Skill]
+    FastModel --> S5[Workspace Skill]
+
+    S1 & S2 -->|Selected| Inject[Inject into Agent Context]
+    S3 & S4 & S5 -.->|Not selected| Skip[Skipped]
+
+    Inject --> Agent[Agent Executes with Focused Context]
+
+    style FastModel fill:#c0392b,color:#fff
+    style Skip fill:#95a5a6,color:#fff
+```
+
+There are also "always-on" skills that get injected regardless of the query. These cover intent detection, caller management, and core organization operations. They're foundational enough that the agent always needs them.
+
+The skill files are loaded into a singleton InMemoryStore on boot, so there's no filesystem reads at query time. In production, they're compiled to JSON. Per-skill loading failures are logged but non-fatal. The store degrades gracefully rather than blocking the entire agent.
+
+## Modular MCP Servers
+
+This is where we learned an expensive lesson early on.
+
+We started with one MCP server that exposed every tool: Google Calendar, Notion, Slack, HubSpot, QuickBooks, Shopify, you name it. All on a single endpoint. The problem? It absolutely bloated the context window. The agent was getting hundreds of tool definitions it didn't need for any given query, and performance suffered.
+
+So we split it up. Same repository, but each integration now has its own MCP endpoint. CRM tools get their own server. Calendar tools get their own server. Messaging, accounting, e-commerce, clinic management, all separate. We support a growing list of integrations across these domains.
+
+The fast model doesn't just pick skills. It also determines which MCP servers the query needs. If you're asking about your call logs, it only connects the core MCP server. If you're asking the agent to post a message and update a CRM contact, it connects those two specific servers and nothing else.
+
+We also gate MCP tools based on what providers the customer actually has connected. The agent only sees tools for services the customer has linked. No point showing e-commerce tools to someone who doesn't use an e-commerce platform.
+
+```mermaid
+graph TD
+    Query[User Query] --> FastModel[Fast Model]
+    FastModel --> Detect[Detect Required Integrations]
+
+    Detect --> MCP1["MCP: Core"]
+    Detect --> MCP2["MCP: Slack"]
+    Detect --> MCP3["MCP: HubSpot"]
+
+    Provider["Provider Check"] --> Gate{Connected?}
+    Gate -->|Yes| Available[Tools Available]
+    Gate -->|No| Hidden[Tools Hidden]
+
+    MCP1 & MCP2 & Available --> AgentCtx[Agent Context]
+
+    style FastModel fill:#c0392b,color:#fff
+    style Gate fill:#f39c12,color:#fff
+```
+
+Each MCP connection is managed with configurable reconnection (max retries, exponential backoff) and we track per-tool metrics: total calls, success rate, failure rate, average duration. This gives us observability into which tools are reliable and which need attention.
+
+## The Middleware Stack
+
+LangChain's middleware system is where a lot of the magic happens. We have a composable stack of middleware that processes every agent invocation. It handles things like cancellation, tool deduplication, caching, metrics, context-aware token budgeting, schema coercion, message batching, provider-based tool gating, and output validation. The order matters, and we've iterated on it quite a bit.
+
+One pattern worth calling out: we distinguish between read-only and write operations for deduplication. Read-only tool calls can be safely deduplicated within a turn to save API calls. But write operations always execute, even if the same call was made before. You don't want to accidentally skip a real action because the agent tried it twice.
+
+## Human-in-the-Loop
+
+![Action Requires Approval dialog in the Benny agent, showing a Send Email action with Reject and Approve options](/hitl.png)
+
+We don't let the agent do everything unsupervised. Sensitive actions require explicit user approval before they execute.
+
+We classify tools by risk level:
+
+- **High risk** (deleting contacts, canceling scheduled tasks): Approve or reject only. No editing.
+- **Medium risk** (sending emails, sending SMS): Approve, edit the content, or reject.
+
+When the agent hits one of these tools, execution pauses. A confirmation dialog pops up on the client showing exactly what the agent wants to do. The user reviews it, makes any edits they want, and either approves or rejects. The agent resumes based on their decision.
+
+This was a deliberate choice. We don't want the agent going wildfire on actions that could have real consequences. A misworded SMS sent to a customer isn't something you can undo. The few seconds it takes to confirm is worth the safety.
+
+## Workspace Files and Agent Memory
+
+The agent saves user preferences and context in workspace files backed by PostgreSQL. This is our virtual filesystem, and the agent is very good at using it.
+
+Over time, the workspace accumulates details about the business: preferred greeting style, business hours, how they like call summaries formatted, team member roles. The agent reads these files at the start of each session, so every interaction is personalized without the user having to repeat themselves.
+
+We also run a proactive memory middleware that pre-loads relevant context from previous conversation threads before the agent even starts processing the new query. This reduces the need for users to re-explain things and makes the agent feel like it actually remembers your business.
+
+Redis handles checkpointing for the conversation state itself with a TTL and refresh-on-read, so active conversations stay warm. If Redis is unavailable, we fall back to in-memory state. The system degrades gracefully rather than failing hard.
+
+## Scheduled Tasks
+
+Users can tell the agent to do things on a recurring basis. Under the hood, this is a distributed scheduler with a heartbeat poll loop.
+
+```mermaid
+graph TD
+    User[User Request] --> Agent[Agent Creates Task]
+    Agent --> DB[(PostgreSQL)]
+    DB --> Heartbeat[Scheduler Heartbeat]
+    Heartbeat -->|Every 30s| Check{Task Due?}
+    Check -->|Yes| Lock[Acquire Distributed Lock]
+    Lock --> Execute[Fire Agent with Task Context]
+    Execute --> Result[Task Completes]
+    Result --> Notify[Notify User if Configured]
+    Check -->|No| Wait[Wait for Next Heartbeat]
+
+    style Heartbeat fill:#c0392b,color:#fff
+    style Lock fill:#e74c3c,color:#fff
+```
+
+Each scheduled task gets a distributed lock so we don't have duplicate executions in a multi-instance deployment. The scheduler supports configurable concurrency, graceful shutdown with a drain period, and automatic auth token refresh when tokens expire.
+
+Tasks have configurable timeouts with continuation attempts. If a task fails, it logs the error and moves on rather than retrying in a loop. We'd rather surface the failure than silently retry something that might have side effects.
+
+## Sandboxed Code Execution with Daytona
+
+Sometimes the agent needs to generate files. A customer wants a CSV export of their call logs, or a PDF summary, or a chart showing their call volume trends. For this, we use [Daytona](https://daytona.io/) to sandbox code execution.
+
+Each sandbox is scoped to an org and thread, reusable within a session, and auto-stops after a period of idle time. The agent can:
+
+- Execute code in Python, JavaScript, TypeScript, Bash, R, or Java
+- Install packages on the fly (pip or npm)
+- Upload and download files within the sandbox
+- Access 30+ pre-installed Python libraries (pandas, numpy, matplotlib, scikit-learn, etc.)
+
+The sandbox comes with system tools like tesseract-ocr, ffmpeg, and poppler pre-installed, so the agent can handle OCR, video processing, and PDF manipulation without setup.
+
+Once the agent generates a file in the sandbox, it uploads the result to our S3 storage scoped to the customer's organization. The file gets a long-lived URL that the customer can access anytime.
+
+## Media Generation with Replicate
+
+For image and video generation, we use [Replicate](https://replicate.com/). The agent can generate images from text prompts, edit existing images, or create short videos.
+
+The flow is straightforward: the agent calls Replicate's prediction API, waits for the result, then immediately downloads the output and uploads it to our S3 storage. Replicate URLs expire after about an hour, so we persist everything to our own storage before that happens. Every file is scoped to the customer's organization.
+
+## Putting It All Together
+
+Here's the full picture of how all these systems connect:
+
+```mermaid
+graph LR
+    subgraph Client
+        App[Web / iOS App]
+    end
+
+    subgraph DeepAgents Harness
+        WS[WebSocket Server]
+        Router[Query Router]
+        MW[Middleware Stack]
+        Agent[LangGraph Agent]
+        Sched[Task Scheduler]
+    end
+
+    subgraph Intelligence
+        OR[OpenRouter]
+        Haiku[Fast Model]
+        Sonnet[Primary Model]
+    end
+
+    subgraph Context
+        Skills[Skill Files]
+        Memory[Workspace Files]
+        Threads[Thread History]
+    end
+
+    subgraph Integrations
+        MCP1[Core MCP]
+        MCP2[Slack MCP]
+        MCP3[HubSpot MCP]
+        MCP4[Calendar MCP]
+        MCPN[+ More MCPs]
+    end
+
+    subgraph Execution
+        Daytona[Daytona Sandbox]
+        Replicate[Replicate Media]
+        S3[S3 Storage]
+    end
+
+    subgraph Persistence
+        Redis[(Redis)]
+        PG[(PostgreSQL)]
+    end
+
+    App <-->|WebSocket| WS
+    WS --> Router
+    Router --> Haiku
+    Haiku --> Skills
+    Haiku --> MCP1 & MCP2 & MCP3 & MCP4 & MCPN
+    Skills & Memory & Threads --> MW
+    MW --> Agent
+    Agent --> OR
+    OR --> Sonnet
+    Agent --> MCP1 & MCP2 & MCP3 & MCP4
+    Agent --> Daytona
+    Agent --> Replicate
+    Daytona & Replicate --> S3
+    Agent --> Redis
+    Memory & Threads --> PG
+    Sched --> PG
+    Sched --> Agent
+
+    style Agent fill:#c0392b,color:#fff
+    style OR fill:#e74c3c,color:#fff
+    style Sched fill:#c0392b,color:#fff
+```
+
+## What We've Learned
+
+Building this system taught us a few things worth sharing:
+
+**Context window discipline matters more than model choice.** A focused, well-structured context with the right skills and tools will outperform a bloated context on a more capable model. Keep it thin.
+
+**Split your MCP servers early.** We wasted time debugging performance issues that were really just context bloat from a monolithic tool server. One server per integration domain is the right granularity.
+
+**Skill files are your leverage.** Detailed, opinionated skill files let you extract near-Opus performance from more affordable models. They're also easier to iterate on than code changes. When we notice the agent handling something poorly, we update a skill file and deploy. No code change, no rebuild.
+
+**Human-in-the-loop is non-negotiable for actions with real consequences.** Customers trust the agent more when they know it won't send an email or SMS without their approval. The friction is worth the trust.
+
+**Bet on the model curve.** By building a model-agnostic harness, we're positioned to benefit from every improvement across the entire LLM ecosystem, not just one provider. When a new model drops that's faster, cheaper, or more capable, we can adopt it immediately.
+
+The agent is the most technically complex thing we've built at AskBenny, and it's also the thing customers love most. That makes the complexity worth it.
+
+---
+
+*If you're building an agent system and want to chat about architecture decisions, or if you're a business looking for an AI-powered answering service, [reach out](https://askbenny.ca/). We're always happy to talk shop.*
