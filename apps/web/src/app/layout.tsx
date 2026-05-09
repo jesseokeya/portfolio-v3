@@ -3,6 +3,7 @@ import { Inter as FontSans } from "next/font/google";
 
 import Navbar from "../components/navbar";
 import { BackgroundDecor } from "../components/background-decor";
+import { ScrollWatcher } from "../components/scroll-watcher";
 import { ThemeProvider } from "../components/theme-provider";
 import { TooltipProvider } from "../components/ui/tooltip";
 import { DATA } from "../data/resume";
@@ -100,6 +101,7 @@ export default function RootLayout({
 
         <ThemeProvider attribute="class" defaultTheme="light">
           <BackgroundDecor />
+          <ScrollWatcher />
           <TooltipProvider delayDuration={0}>
             {children}
             <Navbar />

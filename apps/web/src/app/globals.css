@@ -87,7 +87,8 @@
     askbenny-convai {
       transition: opacity 200ms ease, transform 200ms ease;
     }
-    body.audio-playing askbenny-convai {
+    body.audio-playing askbenny-convai,
+    body.scrolled askbenny-convai {
       opacity: 0;
       pointer-events: none;
       transform: translateY(20px);
