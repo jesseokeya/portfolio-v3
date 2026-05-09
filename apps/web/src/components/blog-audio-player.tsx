@@ -216,15 +216,21 @@ function applyHighlight(range: Range) {
   reg.set(HIGHLIGHT_NAME, new Ctor(range));
 }
 
-function findWordByTime(words: WordTiming[], time: number, hint = 0) {
+function findWordByTime(words: WordTiming[], time: number) {
   if (!words.length) return -1;
-  let i = Math.max(0, Math.min(hint, words.length - 1));
-  if (words[i].start > time) {
-    while (i > 0 && words[i].start > time) i--;
-  } else {
-    while (i < words.length - 1 && words[i + 1].start <= time) i++;
+  let lo = 0;
+  let hi = words.length - 1;
+  let ans = 0;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (words[mid].start <= time) {
+      ans = mid;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
   }
-  return i;
+  return ans;
 }
 
 function autoScrollTo(range: Range) {
@@ -339,16 +345,17 @@ export function BlogAudioPlayer({
   useEffect(() => {
     if (mode !== "audio" || !manifest) return;
     const audio = new Audio(`/audio/${slug}.${voice}.mp3`);
-    audio.preload = "metadata";
+    audio.preload = "auto";
     audioRef.current = audio;
 
-    const onTime = () => {
-      const t = audio.currentTime;
+    const sync = (t: number) => {
       setCurrentTime(t);
-      const idx = findWordByTime(manifest.words, t, lastWordIdxRef.current);
+      const idx = findWordByTime(manifest.words, t);
       lastWordIdxRef.current = idx;
       highlightDomWord(idx);
     };
+    const onTime = () => sync(audio.currentTime);
+    const onSeeked = () => sync(audio.currentTime);
     const onEnded = () => {
       setIsPlaying(false);
       setCurrentTime(0);
@@ -362,6 +369,7 @@ export function BlogAudioPlayer({
     };
 
     audio.addEventListener("timeupdate", onTime);
+    audio.addEventListener("seeked", onSeeked);
     audio.addEventListener("ended", onEnded);
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
@@ -369,6 +377,7 @@ export function BlogAudioPlayer({
 
     return () => {
       audio.removeEventListener("timeupdate", onTime);
+      audio.removeEventListener("seeked", onSeeked);
       audio.removeEventListener("ended", onEnded);
       audio.removeEventListener("play", onPlay);
       audio.removeEventListener("pause", onPause);
@@ -376,7 +385,7 @@ export function BlogAudioPlayer({
       audio.pause();
       audioRef.current = null;
     };
-  }, [mode, manifest, slug, voice]);
+  }, [mode, manifest, slug, voice, highlightDomWord]);
 
   // Cleanup speech synthesis on unmount or mode/voice change
   useEffect(() => {
@@ -387,6 +396,15 @@ export function BlogAudioPlayer({
       clearHighlight();
     };
   }, []);
+
+  // Hide the AskBenny convai widget while reading aloud
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.body.classList.toggle("audio-playing", isPlaying);
+    return () => {
+      document.body.classList.remove("audio-playing");
+    };
+  }, [isPlaying]);
 
   // ---- AUDIO mode controls ----
   const audioToggle = () => {
@@ -400,8 +418,13 @@ export function BlogAudioPlayer({
   };
   const audioSeek = (t: number) => {
     const a = audioRef.current;
-    if (!a) return;
-    a.currentTime = Math.max(0, Math.min(duration, t));
+    if (!a || !manifest) return;
+    const safe = Math.max(0, Math.min(duration, t));
+    a.currentTime = safe;
+    setCurrentTime(safe);
+    const idx = findWordByTime(manifest.words, safe);
+    lastWordIdxRef.current = idx;
+    highlightDomWord(idx);
   };
   const audioSkip = (sec: number) => {
     const a = audioRef.current;
@@ -555,7 +578,12 @@ export function BlogAudioPlayer({
   return (
     <div
       data-audio-player="true"
-      className="flex flex-col gap-2 mb-8 max-w-[650px] p-2.5 sm:p-3 rounded-xl border border-neutral-200/70 dark:border-neutral-800 bg-neutral-50/60 dark:bg-neutral-900/40 backdrop-blur-sm"
+      className={cn(
+        "flex flex-col gap-2 mb-8 max-w-[650px] p-2.5 sm:p-3 rounded-xl border backdrop-blur-md sticky top-3 z-30 transition-shadow",
+        isPlaying
+          ? "border-neutral-300 dark:border-neutral-700 bg-background/85 shadow-md shadow-neutral-900/5 dark:shadow-black/20"
+          : "border-neutral-200/70 dark:border-neutral-800 bg-neutral-50/60 dark:bg-neutral-900/40"
+      )}
     >
       <div className="flex items-center gap-2 sm:gap-3">
         <button

@@ -84,6 +84,14 @@
     .dark ::highlight(reading) {
       background-color: rgb(252 211 77 / 0.28);
     }
+    askbenny-convai {
+      transition: opacity 200ms ease, transform 200ms ease;
+    }
+    body.audio-playing askbenny-convai {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(20px);
+    }
   }
 
   h3 code {
