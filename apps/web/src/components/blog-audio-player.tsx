@@ -14,9 +14,13 @@ type AudioManifest = {
 };
 
 type DomWord = {
-  node: Text;
-  nodeStart: number;
-  nodeEnd: number;
+  startNode: Text;
+  startOffset: number;
+  endNode: Text;
+  endOffset: number;
+  text: string;
+  globalStart: number;
+  globalEnd: number;
 };
 
 const SKIP_SECONDS = 15;
@@ -38,6 +42,27 @@ const EXCLUDED_TAGS = new Set([
   "FIGCAPTION",
 ]);
 
+// Block-level tags whose closing tag becomes a space in the server's text
+// extraction (apps/web/scripts/generate-audio.mjs htmlToText). Keep this in
+// sync so client tokenization matches the manifest's word stream.
+const BLOCK_TAGS = new Set([
+  "P",
+  "H1",
+  "H2",
+  "H3",
+  "H4",
+  "H5",
+  "H6",
+  "LI",
+  "BLOCKQUOTE",
+  "TR",
+  "TD",
+  "TH",
+  "DIV",
+  "SECTION",
+  "ARTICLE",
+]);
+
 function isExcluded(node: Node) {
   let p: HTMLElement | null = node.parentElement;
   while (p) {
@@ -49,7 +74,16 @@ function isExcluded(node: Node) {
   return false;
 }
 
-function buildDomWords(root: HTMLElement): DomWord[] {
+function closestBlockAncestor(node: Node): Element | null {
+  let p: HTMLElement | null = node.parentElement;
+  while (p) {
+    if (BLOCK_TAGS.has(p.tagName)) return p;
+    p = p.parentElement;
+  }
+  return null;
+}
+
+function buildDomIndex(root: HTMLElement): { words: DomWord[]; text: string } {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode(n) {
       return isExcluded(n)
@@ -57,23 +91,67 @@ function buildDomWords(root: HTMLElement): DomWord[] {
         : NodeFilter.FILTER_ACCEPT;
     },
   });
-  const result: DomWord[] = [];
+  const textNodes: Text[] = [];
   let n: Node | null;
-  while ((n = walker.nextNode())) {
-    const t = n as Text;
-    const data = t.data;
-    if (!data.trim()) continue;
-    const re = /\S+/g;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(data)) !== null) {
-      result.push({
-        node: t,
-        nodeStart: m.index,
-        nodeEnd: m.index + m[0].length,
-      });
+  while ((n = walker.nextNode())) textNodes.push(n as Text);
+
+  let global = "";
+  const segments: Array<{ node: Text; start: number; end: number }> = [];
+  let prevBlock: Element | null = null;
+
+  for (const tn of textNodes) {
+    if (!tn.data) continue;
+    const block = closestBlockAncestor(tn);
+    if (
+      segments.length > 0 &&
+      block !== prevBlock &&
+      !/\s$/.test(global) &&
+      !/^\s/.test(tn.data)
+    ) {
+      global += " ";
     }
+    const start = global.length;
+    global += tn.data;
+    segments.push({ node: tn, start, end: global.length });
+    prevBlock = block;
   }
-  return result;
+
+  // Locate which segment a global offset belongs to via binary search.
+  const findSegment = (offset: number, lo = 0): number => {
+    let l = lo;
+    let r = segments.length - 1;
+    while (l <= r) {
+      const mid = (l + r) >> 1;
+      const s = segments[mid];
+      if (offset < s.start) r = mid - 1;
+      else if (offset >= s.end) l = mid + 1;
+      else return mid;
+    }
+    return -1;
+  };
+
+  const words: DomWord[] = [];
+  const re = /\S+/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(global)) !== null) {
+    const startG = m.index;
+    const endG = startG + m[0].length;
+    const startIdx = findSegment(startG);
+    if (startIdx === -1) continue;
+    // For the end, the last char of the word is at endG - 1.
+    const endIdx = findSegment(endG - 1, startIdx);
+    if (endIdx === -1) continue;
+    words.push({
+      startNode: segments[startIdx].node,
+      startOffset: startG - segments[startIdx].start,
+      endNode: segments[endIdx].node,
+      endOffset: endG - segments[endIdx].start,
+      text: m[0],
+      globalStart: startG,
+      globalEnd: endG,
+    });
+  }
+  return { words, text: global };
 }
 
 function pickVoice(voices: SpeechSynthesisVoice[], variant: Voice) {
@@ -197,20 +275,10 @@ export function BlogAudioPlayer({
     if (typeof window === "undefined") return;
     const root = articleRoot();
     if (!root) return;
-    const words = buildDomWords(root);
+    const { words, text } = buildDomIndex(root);
     domWordsRef.current = words;
-
-    // Build text + char offsets for TTS fallback
-    const offsets: number[] = [];
-    let text = "";
-    for (let i = 0; i < words.length; i++) {
-      offsets.push(text.length);
-      text += words[i].node.data.slice(words[i].nodeStart, words[i].nodeEnd);
-      if (i < words.length - 1) text += " ";
-    }
     textRef.current = text;
-    wordCharOffsetsRef.current = offsets;
-
+    wordCharOffsetsRef.current = words.map((w) => w.globalStart);
     setReady(true);
   }, [articleRoot]);
 
@@ -257,6 +325,16 @@ export function BlogAudioPlayer({
     setDuration((textRef.current.length || 0) / FALLBACK_CHARS_PER_SECOND);
   }, [mode, ready]);
 
+  const highlightDomWord = useCallback((idx: number) => {
+    const dom = domWordsRef.current[idx];
+    if (!dom || !dom.startNode.parentNode || !dom.endNode.parentNode) return;
+    const range = document.createRange();
+    range.setStart(dom.startNode, dom.startOffset);
+    range.setEnd(dom.endNode, dom.endOffset);
+    applyHighlight(range);
+    autoScrollTo(range);
+  }, []);
+
   // Wire audio element
   useEffect(() => {
     if (mode !== "audio" || !manifest) return;
@@ -267,19 +345,9 @@ export function BlogAudioPlayer({
     const onTime = () => {
       const t = audio.currentTime;
       setCurrentTime(t);
-      const words = manifest.words;
-      const idx = findWordByTime(words, t, lastWordIdxRef.current);
-      if (idx === lastWordIdxRef.current && idx > 0) {
-        // Same word, still highlight (in case re-render cleared)
-      }
+      const idx = findWordByTime(manifest.words, t, lastWordIdxRef.current);
       lastWordIdxRef.current = idx;
-      const dom = domWordsRef.current[idx];
-      if (!dom || !dom.node.parentNode) return;
-      const range = document.createRange();
-      range.setStart(dom.node, dom.nodeStart);
-      range.setEnd(dom.node, dom.nodeEnd);
-      applyHighlight(range);
-      autoScrollTo(range);
+      highlightDomWord(idx);
     };
     const onEnded = () => {
       setIsPlaying(false);
@@ -318,16 +386,6 @@ export function BlogAudioPlayer({
       }
       clearHighlight();
     };
-  }, []);
-
-  const highlightDomWord = useCallback((idx: number) => {
-    const dom = domWordsRef.current[idx];
-    if (!dom || !dom.node.parentNode) return;
-    const range = document.createRange();
-    range.setStart(dom.node, dom.nodeStart);
-    range.setEnd(dom.node, dom.nodeEnd);
-    applyHighlight(range);
-    autoScrollTo(range);
   }, []);
 
   // ---- AUDIO mode controls ----

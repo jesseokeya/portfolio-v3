@@ -103,23 +103,22 @@ export default async function Blog({
         <ArrowLeftIcon className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
         Back to blog
       </Link>
-      <BlogAudioPlayer rootId="readable-content" slug={post.slug} />
-      <div id="readable-content">
-        <h1 className="title font-medium text-2xl tracking-tighter max-w-[650px]">
-          {post.metadata.title}
-        </h1>
-        <div className="flex justify-between items-center mt-2 mb-6 text-sm max-w-[650px]">
-          <Suspense fallback={<p className="h-5" />}>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              {formatDate(post.metadata.publishedAt)}
-            </p>
-          </Suspense>
-        </div>
-        <article
-          className="prose dark:prose-invert"
-          dangerouslySetInnerHTML={{ __html: post.source }}
-        ></article>
+      <h1 className="title font-medium text-2xl tracking-tighter max-w-[650px]">
+        {post.metadata.title}
+      </h1>
+      <div className="flex justify-between items-center mt-2 mb-6 text-sm max-w-[650px]">
+        <Suspense fallback={<p className="h-5" />}>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            {formatDate(post.metadata.publishedAt)}
+          </p>
+        </Suspense>
       </div>
+      <BlogAudioPlayer rootId="post-article" slug={post.slug} />
+      <article
+        id="post-article"
+        className="prose dark:prose-invert"
+        dangerouslySetInnerHTML={{ __html: post.source }}
+      ></article>
       <div className="mt-12 pt-8 border-t border-neutral-200 dark:border-neutral-800 max-w-[650px]">
         <Link
           href="/blog"
