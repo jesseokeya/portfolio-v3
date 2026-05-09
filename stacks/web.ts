@@ -7,6 +7,7 @@ const props: NextjsArgs = {
     CLOUDFLARE_DEFAULT_ACCOUNT_ID:
       process.env.CLOUDFLARE_DEFAULT_ACCOUNT_ID || "",
     NODE_ENV: $app.stage,
+    NEXT_PUBLIC_ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY || "",
   },
 };
 
