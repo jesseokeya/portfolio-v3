@@ -233,6 +233,23 @@ function findWordByTime(words: WordTiming[], time: number) {
   return ans;
 }
 
+function findWordByCharOffset(offsets: number[], offset: number) {
+  if (!offsets.length) return 0;
+  let lo = 0;
+  let hi = offsets.length - 1;
+  let ans = 0;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (offsets[mid] <= offset) {
+      ans = mid;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+  return ans;
+}
+
 function autoScrollTo(range: Range) {
   const rect = range.getBoundingClientRect();
   const vh = window.innerHeight;
@@ -349,8 +366,9 @@ export function BlogAudioPlayer({
     audioRef.current = audio;
 
     const sync = (t: number) => {
-      setCurrentTime(t);
-      const idx = findWordByTime(manifest.words, t);
+      const manifestTime = Math.max(0, Math.min(manifest.duration, t));
+      setCurrentTime(manifestTime);
+      const idx = findWordByTime(manifest.words, manifestTime);
       lastWordIdxRef.current = idx;
       highlightDomWord(idx);
     };
@@ -364,16 +382,12 @@ export function BlogAudioPlayer({
     };
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
-    const onLoaded = () => {
-      if (Number.isFinite(audio.duration)) setDuration(audio.duration);
-    };
 
     audio.addEventListener("timeupdate", onTime);
     audio.addEventListener("seeked", onSeeked);
     audio.addEventListener("ended", onEnded);
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
-    audio.addEventListener("loadedmetadata", onLoaded);
 
     return () => {
       audio.removeEventListener("timeupdate", onTime);
@@ -381,7 +395,6 @@ export function BlogAudioPlayer({
       audio.removeEventListener("ended", onEnded);
       audio.removeEventListener("play", onPlay);
       audio.removeEventListener("pause", onPause);
-      audio.removeEventListener("loadedmetadata", onLoaded);
       audio.pause();
       audioRef.current = null;
     };
@@ -419,7 +432,7 @@ export function BlogAudioPlayer({
   const audioSeek = (t: number) => {
     const a = audioRef.current;
     if (!a || !manifest) return;
-    const safe = Math.max(0, Math.min(duration, t));
+    const safe = Math.max(0, Math.min(manifest.duration, t));
     a.currentTime = safe;
     setCurrentTime(safe);
     const idx = findWordByTime(manifest.words, safe);
@@ -438,7 +451,10 @@ export function BlogAudioPlayer({
       if (typeof window === "undefined") return;
       const total = textRef.current.length;
       if (!total) return;
-      const safe = Math.max(0, Math.min(offset, total - 1));
+      const requested = Math.max(0, Math.min(offset, total - 1));
+      const offsets = wordCharOffsetsRef.current;
+      const initialIdx = findWordByCharOffset(offsets, requested);
+      const safe = offsets[initialIdx] ?? requested;
       window.speechSynthesis.cancel();
       utteranceRef.current = null;
       ttsStartOffsetRef.current = safe;
@@ -446,14 +462,8 @@ export function BlogAudioPlayer({
       setCurrentTime(safe / FALLBACK_CHARS_PER_SECOND);
 
       // Highlight word at offset
-      const offsets = wordCharOffsetsRef.current;
-      let idx = 0;
-      for (let i = 0; i < offsets.length; i++) {
-        if (offsets[i] <= safe) idx = i;
-        else break;
-      }
-      lastWordIdxRef.current = idx;
-      highlightDomWord(idx);
+      lastWordIdxRef.current = initialIdx;
+      highlightDomWord(initialIdx);
 
       if (!autoplay) {
         setIsPlaying(false);
@@ -475,10 +485,7 @@ export function BlogAudioPlayer({
         const global = ttsStartOffsetRef.current + e.charIndex;
         ttsCharPosRef.current = global;
         setCurrentTime(global / FALLBACK_CHARS_PER_SECOND);
-        const o = wordCharOffsetsRef.current;
-        let i = lastWordIdxRef.current;
-        while (i < o.length - 1 && o[i + 1] <= global) i++;
-        while (i > 0 && o[i] > global) i--;
+        const i = findWordByCharOffset(wordCharOffsetsRef.current, global);
         lastWordIdxRef.current = i;
         highlightDomWord(i);
       };
@@ -557,9 +564,9 @@ export function BlogAudioPlayer({
     if (mode !== "audio" || !audioRef.current || !manifest) return;
     if (!pendingFractionRef.current && !pendingResumeRef.current) return;
     const a = audioRef.current;
-    const seekTo = pendingFractionRef.current * duration;
+    const seekTo = pendingFractionRef.current * manifest.duration;
     const handler = () => {
-      a.currentTime = Math.max(0, Math.min(duration, seekTo));
+      a.currentTime = Math.max(0, Math.min(manifest.duration, seekTo));
       if (pendingResumeRef.current) a.play().catch(() => {});
       pendingFractionRef.current = 0;
       pendingResumeRef.current = false;
@@ -567,7 +574,7 @@ export function BlogAudioPlayer({
     };
     if (a.readyState >= 1) handler();
     else a.addEventListener("loadedmetadata", handler);
-  }, [mode, manifest, duration]);
+  }, [mode, manifest]);
 
   if (!supported) return null;
 

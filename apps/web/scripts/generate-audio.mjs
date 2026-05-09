@@ -19,6 +19,51 @@ const MAX_CHARS_PER_CHUNK = 2400;
 const CONTENT_DIR = "content";
 const OUTPUT_DIR = path.join("public", "audio");
 
+const MP3_BITRATES_KBPS = {
+  mpeg1Layer3: [
+    null,
+    32,
+    40,
+    48,
+    56,
+    64,
+    80,
+    96,
+    112,
+    128,
+    160,
+    192,
+    224,
+    256,
+    320,
+    null,
+  ],
+  mpeg2Layer3: [
+    null,
+    8,
+    16,
+    24,
+    32,
+    40,
+    48,
+    56,
+    64,
+    80,
+    96,
+    112,
+    128,
+    144,
+    160,
+    null,
+  ],
+};
+
+const MP3_SAMPLE_RATES = {
+  3: [44100, 48000, 32000, null],
+  2: [22050, 24000, 16000, null],
+  0: [11025, 12000, 8000, null],
+};
+
 loadDotenv();
 const API_KEY = process.env.ELEVENLABS_API_KEY;
 if (!API_KEY) {
@@ -118,6 +163,113 @@ function chunkBySentence(text, max) {
   return chunks;
 }
 
+function id3v2TagLength(buffer, offset) {
+  if (
+    offset + 10 > buffer.length ||
+    buffer[offset] !== 0x49 ||
+    buffer[offset + 1] !== 0x44 ||
+    buffer[offset + 2] !== 0x33
+  ) {
+    return 0;
+  }
+
+  const size =
+    ((buffer[offset + 6] & 0x7f) << 21) |
+    ((buffer[offset + 7] & 0x7f) << 14) |
+    ((buffer[offset + 8] & 0x7f) << 7) |
+    (buffer[offset + 9] & 0x7f);
+
+  return 10 + size;
+}
+
+function mp3FrameInfo(buffer, offset) {
+  if (
+    offset + 4 > buffer.length ||
+    buffer[offset] !== 0xff ||
+    (buffer[offset + 1] & 0xe0) !== 0xe0
+  ) {
+    return 0;
+  }
+
+  const version = (buffer[offset + 1] >> 3) & 0x03;
+  const layer = (buffer[offset + 1] >> 1) & 0x03;
+  const bitrateIndex = (buffer[offset + 2] >> 4) & 0x0f;
+  const sampleRateIndex = (buffer[offset + 2] >> 2) & 0x03;
+  const padding = (buffer[offset + 2] >> 1) & 0x01;
+  const channelMode = (buffer[offset + 3] >> 6) & 0x03;
+
+  // We request MP3 from ElevenLabs, which currently returns Layer III frames.
+  if (version === 1 || layer !== 1) return 0;
+
+  const bitrates =
+    version === 3
+      ? MP3_BITRATES_KBPS.mpeg1Layer3
+      : MP3_BITRATES_KBPS.mpeg2Layer3;
+  const bitrate = bitrates[bitrateIndex];
+  const sampleRate = MP3_SAMPLE_RATES[version]?.[sampleRateIndex];
+  if (!bitrate || !sampleRate) return 0;
+
+  const coefficient = version === 3 ? 144000 : 72000;
+  return {
+    length: Math.floor((coefficient * bitrate) / sampleRate + padding),
+    version,
+    channelMode,
+  };
+}
+
+function frameHasSeekHeader(buffer, offset, frame) {
+  const sideInfoLength =
+    frame.version === 3
+      ? frame.channelMode === 3
+        ? 17
+        : 32
+      : frame.channelMode === 3
+        ? 9
+        : 17;
+  const markerOffset = offset + 4 + sideInfoLength;
+  const marker = buffer.toString("latin1", markerOffset, markerOffset + 4);
+  return marker === "Xing" || marker === "Info";
+}
+
+function normalizeMp3ForConcat(buffer) {
+  const frames = [];
+  let totalBytes = 0;
+  let offset = 0;
+
+  while (offset < buffer.length) {
+    const tagLength = id3v2TagLength(buffer, offset);
+    if (tagLength > 0) {
+      offset += tagLength;
+      continue;
+    }
+
+    if (
+      offset + 128 <= buffer.length &&
+      buffer[offset] === 0x54 &&
+      buffer[offset + 1] === 0x41 &&
+      buffer[offset + 2] === 0x47
+    ) {
+      offset += 128;
+      continue;
+    }
+
+    const frame = mp3FrameInfo(buffer, offset);
+    if (!frame) {
+      offset++;
+      continue;
+    }
+
+    const end = Math.min(buffer.length, offset + frame.length);
+    if (!frameHasSeekHeader(buffer, offset, frame)) {
+      frames.push(buffer.subarray(offset, end));
+      totalBytes += end - offset;
+    }
+    offset += frame.length;
+  }
+
+  return frames.length ? Buffer.concat(frames, totalBytes) : buffer;
+}
+
 async function ttsWithTimestamps(text, voiceId) {
   const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/with-timestamps`;
   const res = await fetch(url, {
@@ -189,6 +341,14 @@ async function fileExists(p) {
   }
 }
 
+async function normalizeMp3File(filePath) {
+  const original = await fs.readFile(filePath);
+  const normalized = normalizeMp3ForConcat(original);
+  if (normalized.equals(original)) return false;
+  await fs.writeFile(filePath, normalized);
+  return true;
+}
+
 async function generateForPost(slug, voiceKey) {
   const voiceId = VOICES[voiceKey];
   const mdPath = path.join(CONTENT_DIR, `${slug}.mdx`);
@@ -215,7 +375,10 @@ async function generateForPost(slug, voiceKey) {
     try {
       const existing = JSON.parse(await fs.readFile(jsonPath, "utf-8"));
       if (existing.hash === hash && (await fileExists(mp3Path))) {
-        console.log(`✓ ${slug}.${voiceKey}: up to date`);
+        const repaired = await normalizeMp3File(mp3Path);
+        console.log(
+          `✓ ${slug}.${voiceKey}: up to date${repaired ? " (repaired MP3 headers)" : ""}`
+        );
         return;
       }
     } catch {}
@@ -232,7 +395,9 @@ async function generateForPost(slug, voiceKey) {
   for (let i = 0; i < chunks.length; i++) {
     process.stdout.write(`   chunk ${i + 1}/${chunks.length} (${chunks[i].length} chars)... `);
     const result = await ttsWithTimestamps(chunks[i], voiceId);
-    const audioBuf = Buffer.from(result.audio_base64, "base64");
+    const audioBuf = normalizeMp3ForConcat(
+      Buffer.from(result.audio_base64, "base64")
+    );
     buffers.push(audioBuf);
     const { words, lastEnd } = alignmentToWords(result.alignment, timeOffset);
     allWords.push(...words);
