@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
 
 import Navbar from "../components/navbar";
+import { BackgroundDecor } from "../components/background-decor";
 import { ThemeProvider } from "../components/theme-provider";
 import { TooltipProvider } from "../components/ui/tooltip";
 import { DATA } from "../data/resume";
@@ -90,7 +91,7 @@ export default function RootLayout({
 
       <body
         className={cn(
-          "min-h-screen bg-background font-sans antialiased max-w-2xl mx-auto py-12 sm:py-24 px-6",
+          "min-h-screen font-sans antialiased max-w-2xl mx-auto py-12 sm:py-24 px-6",
           fontSans.variable
         )}
       >
@@ -98,6 +99,7 @@ export default function RootLayout({
         <askbenny-convai agent-id="7vQWhlRsnHIPKDbHpCAS"></askbenny-convai>
 
         <ThemeProvider attribute="class" defaultTheme="light">
+          <BackgroundDecor />
           <TooltipProvider delayDuration={0}>
             {children}
             <Navbar />
